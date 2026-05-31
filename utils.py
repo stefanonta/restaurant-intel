@@ -1,4 +1,4 @@
-import yaml, os, gspread
+import yaml, os, gspread, json
 from openai import OpenAI
 #===================================================================================================================
 def load_config(config_file='config.yaml'):
@@ -46,7 +46,29 @@ def connect_spreasheet(configs_data):
     sh = gc.open_by_url(configs_data['other_settings']['spreadsheet_url'])
     # Return Worksheet Class object that represents the first worksheet (index 0) in the Google Sheet
     # -> gspread.Worksheet
-    return sh.get_worksheet(0) 
+    return sh.get_worksheet(0)
+
+    ###################################################################################################################
+def connect_spreadsheet(configs_data):
+    '''
+    Connect to Google Sheets using credentials from environment variable (Railway)
+    or from service account file (local development).
+    '''
+    if os.getenv('CREDENTIALS_FILE'):
+        # On Railway: parse env var as JSON dict
+        creds_dict = json.loads(os.getenv('CREDENTIALS_FILE'))
+        worksheet = gspread.service_account_from_dict(creds_dict).open_by_url(configs_data['other_settings']['spreadsheet_url']).sheet1
+    else:
+        # Open a gspread connection using the service account credentials file
+        # -> gspread.Client
+        gc = gspread.service_account(filename=configs_data['other_settings']['credentials_file'])
+        # Open the Google Sheet by its URL
+        # -> gspread.Spreadsheet
+        sh = gc.open_by_url(configs_data['other_settings']['spreadsheet_url'])
+        # Return Worksheet Class object that represents the first worksheet (index 0) in the Google Sheet
+        # -> gspread.Worksheet
+        worksheet = sh.get_worksheet(0)
+    return worksheet
 #===================================================================================================================
 def create_openai_connection(configs_data):
     '''
