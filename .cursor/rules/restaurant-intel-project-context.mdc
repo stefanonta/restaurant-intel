@@ -1,9 +1,0 @@
----
-alwaysApply: true
----
-
-- This project is a Restaurant Reviews Intelligence System.
-- Stack: Python, OpenAI SDK, Google Sheets API (as database), Google Docs API (for report output), conda environment named restaurant-intel.
-- Config is loaded from config.yaml — never hardcode API keys or credentials in source files.
-- Always suggest solutions compatible with this stack.
-- When suggesting new packages, confirm they should be installed in the restaurant-intel conda environment.
