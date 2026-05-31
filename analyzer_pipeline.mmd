@@ -1,0 +1,57 @@
+flowchart TD
+
+    %% ── PHASE 1: SETUP ──────────────────────────────────────────────
+    A([▶ main.py starts]):::start
+    A -->|"config.yaml (file)"| B["utils.load_config()"]:::utils
+    B -->|"configs (dict)"| C["utils.connect_spreadsheet()"]:::utils
+    B -->|"configs (dict)"| D["fetcher.fetch_reviews()"]:::fetcher
+
+    %% ── PHASE 2: GUARD CLAUSE ───────────────────────────────────────
+    D -->|"reviews_data (dict)"| E{reviews_data<br/>is None?}:::decision
+    E -->|Yes| F([✖ Exit]):::exit
+    E -->|"No: worksheet (Worksheet)"| G["storage.clear_sheet()"]:::storage
+
+    %% ── PHASE 3: WRITE HEADER ───────────────────────────────────────
+    G -->|"worksheet (Worksheet)"| H["storage.write_row(header_row)"]:::storage
+
+    %% ── PHASE 4: REVIEW LOOP ────────────────────────────────────────
+    H --> I([for each review in reviews_data]):::loop
+    I -->|"review_text (str)<br/>review_date (str)"| J["analyzer.analyze_review()"]:::analyzer
+    J -->|"analysis (dict)"| K["inject review_date into analysis"]:::main
+    K -->|"analysis (dict)"| L["storage.write_row(analysis)"]:::storage
+    L --> M{more<br/>reviews?}:::decision
+    M -->|Yes| I
+    M -->|No| N
+
+    %% ── PHASE 5: REPORTING ──────────────────────────────────────────
+    N([reporter.main starts]):::reporter
+    N -->|"worksheet (Worksheet)"| O["worksheet.get_all_records()"]:::reporter
+    O -->|"worksheet_data (list of dicts)"| P["reporter.process_summarized_reviews()"]:::reporter
+    P -->|"csv_report (str)"| Q["reporter.generate_report()"]:::reporter
+    Q -->|"report_text (str)"| R["reporter.write_report()"]:::reporter
+    R --> S([✔ Done]):::start
+
+    %% ── STYLES ──────────────────────────────────────────────────────
+    classDef start       fill:#2d6a4f,color:#fff,stroke:#1b4332,stroke-width:2px
+    classDef exit        fill:#c0392b,color:#fff,stroke:#922b21,stroke-width:2px
+    classDef utils       fill:#1a6496,color:#fff,stroke:#0f3d5c,stroke-width:2px
+    classDef fetcher     fill:#7b2d8b,color:#fff,stroke:#4a1a54,stroke-width:2px
+    classDef analyzer    fill:#e67e22,color:#fff,stroke:#9a5407,stroke-width:2px
+    classDef storage     fill:#27ae60,color:#fff,stroke:#1a6b3c,stroke-width:2px
+    classDef reporter    fill:#2471a3,color:#fff,stroke:#154360,stroke-width:2px
+    classDef main        fill:#717d7e,color:#fff,stroke:#424949,stroke-width:2px
+    classDef loop        fill:#d4ac0d,color:#fff,stroke:#9a7d0a,stroke-width:2px
+    classDef decision    fill:#f5f5f5,color:#333,stroke:#999,stroke-width:2px
+
+%% LEGEND
+%% Green (dark)  → start / end points
+%% Blue          → utils.py (setup & connections)
+%% Purple        → fetcher.py (data retrieval)
+%% Orange        → analyzer.py (LLM categorization)
+%% Green (light) → storage.py (Google Sheets)
+%% Dark blue     → reporter.py (reporting)
+%% Grey          → inline logic in main.py
+%% Yellow        → loop marker
+
+%% Nodes contain only the function name. They answer: "what runs here?"
+%% Arrows carry the data label in the format variable_name (type) — they answer: "what gets passed to the next step, and what type is it?"

@@ -1,0 +1,8 @@
+config.yaml
+.env
+*.key
+.DS_Store
+__pycache__/
+*.pyc
+test_api_local.py
+service-account-credentials.json
