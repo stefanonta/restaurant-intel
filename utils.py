@@ -1,14 +1,34 @@
-import yaml, gspread
+import yaml, os, gspread
 from openai import OpenAI
 #===================================================================================================================
-def load_config(config_file):
+def load_config(config_file='config.yaml'):
     '''
-    <- str: Path to the .yaml configuration file.
-    -> dict: Configuration data as a dictionary.
-    This function reads a .yaml config file and returns the content as a dictionary.
+    Load configuration from environment variables first, then from config.yaml as fallback.
+    
+    <- str: Path to the .yaml configuration file (default: 'config.yaml')
+    -> dict: Configuration data as a dictionary
     '''
+    
+    # Try environment variables first
+    env_config = {
+        'clients': [{'name': 'La Deliziosa Pizzeria Restaurant', 'google_place_id': os.getenv('GOOGLE_PLACE_ID')}],
+        'api_keys': {
+            'google_maps': os.getenv('GOOGLE_MAPS_API_KEY'),
+            'openai': os.getenv('OPENAI_API_KEY')
+        },
+        'other_settings': {
+            'credentials_file': os.getenv('CREDENTIALS_FILE', 'service-account-credentials.json'),
+            'spreadsheet_url': os.getenv('SPREADSHEET_URL'),
+            'report_document_id': os.getenv('REPORT_DOCUMENT_ID')
+        }
+    }
+    
+    # If any required env var exists, use environment config
+    if os.getenv('OPENAI_API_KEY'):
+        return env_config
+    
+    # Otherwise, fall back to YAML file (local development)
     with open(config_file, 'r') as file:
-        # -> dict
         return yaml.safe_load(file)
 #===================================================================================================================
 def connect_spreasheet(configs_data):
